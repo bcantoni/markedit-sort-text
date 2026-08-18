@@ -1,4 +1,4 @@
-// Test harness: loads sort-text.js the way MarkEdit does (classic script with a
+// Test harness: loads markedit-sort-text.js the way MarkEdit does (classic script with a
 // MarkEdit global) against a mock CodeMirror doc/view, and checks sort results.
 //
 // Usage: node test.js [path-to-extension.js]
@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 
-const extensionPath = process.argv[2] ?? path.join(__dirname, 'sort-text.js');
+const extensionPath = process.argv[2] ?? path.join(__dirname, 'markedit-sort-text.js');
 
 class MockDoc {
   constructor(text) { this.text = text; }

@@ -16,27 +16,30 @@ Edge cases handled:
 
 ## Install
 
-MarkEdit loads every user extension as a single `.js` file from its sandboxed scripts folder:
+**One-click (MarkEdit 1.34+):** open the [project page](https://bcantoni.github.io/markedit-sort-text/) and click **Add to MarkEdit**. (GitHub doesn't link custom URL schemes, but anywhere that does, the deep link is `markedit://install-extension?url=https%3A%2F%2Fbcantoni.github.io%2Fmarkedit-sort-text%2Fmarkedit-sort-text.js`.) MarkEdit shows a confirmation, downloads the script, pins its sha256, and offers a relaunch.
 
-```sh
-cp sort-text.js ~/Library/Containers/app.cyan.markedit/Data/Documents/scripts/
+**From a URL (MarkEdit 1.34+):** in MarkEdit, open the **Extensions** window, choose **Actions → Install from URL…**, and paste:
+
+```
+https://bcantoni.github.io/markedit-sort-text/markedit-sort-text.js
 ```
 
-Then **relaunch MarkEdit** — user scripts are attached when an editor window's web view is created, so a running app won't pick up changes.
+**Manually (any version):** MarkEdit loads every user extension as a single `.js` file from its sandboxed scripts folder:
 
-Version notes:
+```sh
+cp markedit-sort-text.js ~/Library/Containers/app.cyan.markedit/Data/Documents/scripts/
+```
 
-- **MarkEdit 1.33.x** (current release): every `.js` file in `scripts/` is injected unconditionally. No registration step exists; there is no way to disable a script other than removing the file.
-- **MarkEdit 1.34+**: the app keeps an `extensions.json` registry next to the scripts folder. A new file is auto-adopted on launch (id derived from the filename: `sort-text.js` → `sort-text`) and can be enabled/disabled from the Extensions window. No action needed when upgrading.
+However you install, **relaunch MarkEdit** afterwards — user scripts are attached when an editor window's web view is created, so a running app won't pick up changes. On 1.34+ the extension appears in the Extensions window (id `markedit-sort-text`, derived from the filename) where it can be enabled/disabled; on 1.33.x and earlier, every `.js` file in `scripts/` is injected unconditionally and removing the file is the only off switch.
 
 ## Development
 
-The whole extension is one hand-written file, `sort-text.js` — plain classic JavaScript, no dependencies, no build step. MarkEdit wraps each script in an IIFE with a CommonJS shim and injects it as a `WKUserScript`, so top-level ESM `import`/`export` won't work; everything comes from the global `MarkEdit` object instead.
+The whole extension is one hand-written file, `markedit-sort-text.js` — plain classic JavaScript, no dependencies, no build step. MarkEdit wraps each script in an IIFE with a CommonJS shim and injects it as a `WKUserScript`, so top-level ESM `import`/`export` won't work; everything comes from the global `MarkEdit` object instead.
 
 Edit → deploy loop:
 
 ```sh
-cp sort-text.js ~/Library/Containers/app.cyan.markedit/Data/Documents/scripts/ && \
+cp markedit-sort-text.js ~/Library/Containers/app.cyan.markedit/Data/Documents/scripts/ && \
   osascript -e 'tell app "MarkEdit" to quit' && sleep 1 && open -a MarkEdit
 ```
 
@@ -44,7 +47,7 @@ Debugging: right-click the editor → **Inspect Element** (or Option-Cmd-I) open
 
 ### Tests
 
-`test.js` is a Node harness that loads `sort-text.js` exactly the way MarkEdit injects it (classic script + `MarkEdit` global) against a mock CodeMirror document, and asserts the sort behavior including all the edge cases above:
+`test.js` is a Node harness that loads `markedit-sort-text.js` exactly the way MarkEdit injects it (classic script + `MarkEdit` global) against a mock CodeMirror document, and asserts the sort behavior including all the edge cases above:
 
 ```sh
 node test.js
@@ -60,13 +63,20 @@ No MarkEdit or npm install required.
 
 References: [Customization wiki](https://github.com/MarkEdit-app/MarkEdit/wiki/Customization) · [MarkEdit-api](https://github.com/MarkEdit-app/MarkEdit-api) (full `index.d.ts` of the `MarkEdit` global).
 
-## Toward a standalone, distributable extension
+## Distribution
 
-Roughly in order:
+The extension is distributed from this repo's GitHub Pages site (served straight from the `main` branch root, so the install URL always tracks `main`):
 
-1. **Housekeeping**: add a license (MIT is typical for MarkEdit extensions), commit, push to GitHub (e.g. `brian/markedit-sort-text`), and cut a tagged release whose asset is the raw `sort-text.js`.
-2. **Manual URL install (MarkEdit 1.34+)**: anyone can install from a link — `markedit://install-extension?url=<https-url-to-sort-text.js>`. The app shows a confirmation, pins the file's sha256, and offers a relaunch. Compute the hash with `shasum -a 256 sort-text.js`.
-3. **Registry listing (MarkEdit 1.34+)**: the app's Extensions window browses a community index built by CI from [MarkEdit-app/extensions](https://github.com/MarkEdit-app/extensions). Getting listed means a PR adding an entry; per the app's `ExtensionRegistry` model (schema v1) an entry carries `id`, `name`, `description`, `author`, `homepage`, `category` (`extension`), and a release with `version`, `url`, `sha256`, optional `minAppVersion` and `notes`. Check that repo's contributing guide for the exact submission format once 1.34 ships.
-4. **Optional TypeScript conversion**: for type-checked development, restructure as a Vite project with `"markedit-api": "https://github.com/MarkEdit-app/MarkEdit-api#v0.30.0"` in `devDependencies`, MarkEdit/CodeMirror imports marked `external`, and a single-file CommonJS bundle as output (see the MarkEdit-api README). For a script this size, plain JS is a fine place to stay.
+- Landing page with an install button: <https://bcantoni.github.io/markedit-sort-text/>
+- Raw script (the URL MarkEdit installs from): <https://bcantoni.github.io/markedit-sort-text/markedit-sort-text.js>
 
-Possible feature ideas: keyboard shortcuts, "Reverse Lines", "Sort A → Z removing duplicates", case-sensitive variant, sorting Markdown list items by text rather than raw line.
+How MarkEdit's URL install works (per `ExtensionInstaller`/`ExtensionDownloader` in the MarkEdit source): the URL must be a direct HTTPS link to the `.js` file; the id derives from the filename (`markedit-sort-text.js` → `markedit-sort-text`); the app confirms with the user, records the sha256 of the downloaded bytes, and writes `scripts/<id>.js`. URL-installed extensions show as "Local" and don't auto-update — reinstalling from the same URL overwrites in place.
+
+### Registry submission
+
+For an in-app **Discover** listing with auto-updates, the extension needs an entry in the community registry, [MarkEdit-app/extensions](https://github.com/MarkEdit-app/extensions). `registry/markedit-sort-text.json` in this repo is a ready-to-submit entry (validated against the registry's `extension.schema.json`): open a PR that adds it as `extensions/markedit-sort-text.json` in that repo. Its version URL is pinned to the immutable `v1.0.0` tag with the matching sha256; the `date` field is added at submission time (UTC, truncated to the hour, per the schema). For future versions: tag a release, prepend a new entry to `versions` with the tag's raw URL and `shasum -a 256` of those exact bytes, and PR the updated file.
+
+### Possible future work
+
+- **TypeScript conversion**: for type-checked development, restructure as a Vite project with `"markedit-api": "https://github.com/MarkEdit-app/MarkEdit-api#v0.30.0"` in `devDependencies`, MarkEdit/CodeMirror imports marked `external`, and a single-file CommonJS bundle as output (see the MarkEdit-api README). For a script this size, plain JS is a fine place to stay.
+- Feature ideas: keyboard shortcuts, "Reverse Lines", "Sort A → Z removing duplicates", case-sensitive variant, sorting Markdown list items by text rather than raw line.

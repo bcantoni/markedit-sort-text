@@ -4,8 +4,10 @@
 // alphabetically (case-insensitive, locale- and number-aware). Commands act on
 // the selected lines when there is a selection, otherwise on the whole file.
 //
-// Install: copy this file to ~/Library/Containers/app.cyan.markedit/Data/Documents/scripts/
-// and relaunch MarkEdit.
+// Install (MarkEdit 1.34+): in MarkEdit, Extensions → Actions → Install from URL…
+// with https://bcantoni.github.io/markedit-sort-text/markedit-sort-text.js
+// Or copy this file to ~/Library/Containers/app.cyan.markedit/Data/Documents/scripts/
+// Relaunch MarkEdit after installing.
 
 MarkEdit.onEditorReady(() => {
   MarkEdit.addMainMenuItem({

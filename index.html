@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Sort Text is a MarkEdit extension that sorts lines alphabetically — case-insensitive, locale-aware, and numeric-aware.">
+<title>Sort Text for MarkEdit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #FCFCFB;
+    --ink: #1B1D21;
+    --muted: #66707C;
+    --selection: #BFDBFF;
+    --accent: #0B63E5;
+    --accent-ink: #FFFFFF;
+    --chrome: #F1F1EF;
+    --hairline: #E2E2DF;
+    --well: #F6F6F4;
+    --sans: "Spline Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    --row: 1.9rem;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #141518;
+      --ink: #E7E9EC;
+      --muted: #8B95A1;
+      --selection: #1E4976;
+      --accent: #4C9DFF;
+      --accent-ink: #0B1526;
+      --chrome: #1D1F24;
+      --hairline: #2A2D33;
+      --well: #1A1C20;
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--selection); }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+  .page {
+    max-width: 41rem;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 4rem;
+  }
+
+  /* ---- Top bar ---- */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    padding-bottom: 3.5rem;
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+  }
+  header .repo { color: var(--muted); }
+  header a { color: var(--muted); }
+  header a:hover { color: var(--accent); }
+
+  /* ---- Hero ---- */
+  h1 {
+    font-size: clamp(1.9rem, 5.5vw, 2.6rem);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    max-width: 30rem;
+  }
+  .lede {
+    margin-top: 0.9rem;
+    max-width: 34rem;
+    color: var(--muted);
+  }
+  .lede strong { color: var(--ink); font-weight: 500; }
+
+  /* ---- Editor demo ---- */
+  .editor {
+    margin-top: 2.25rem;
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    background: var(--paper);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 12px 32px -16px rgba(0,0,0,0.12);
+    overflow: hidden;
+  }
+  .editor-chrome {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--chrome);
+    border-bottom: 1px solid var(--hairline);
+    padding: 0.55rem 0.8rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .lights { display: flex; gap: 6px; }
+  .lights span { width: 11px; height: 11px; border-radius: 50%; background: var(--hairline); }
+  .editor-chrome .filename { flex: 1; text-align: center; }
+  .replay {
+    background: none;
+    border: none;
+    font: inherit;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0.1rem 0.3rem;
+  }
+  .replay:hover { color: var(--accent); }
+  .editor-body {
+    position: relative;
+    padding: 0.9rem 1.1rem;
+    font-family: var(--mono);
+    font-size: 0.9375rem;
+    height: calc(var(--row) * 6 + 1.8rem);
+  }
+  .line {
+    position: absolute;
+    left: 1.1rem;
+    right: 1.1rem;
+    height: var(--row);
+    line-height: var(--row);
+    white-space: pre;
+    transition: transform 0.55s cubic-bezier(0.3, 0.9, 0.3, 1), background-color 0.4s ease;
+    border-radius: 3px;
+    padding: 0 0.35rem;
+    margin: 0 -0.35rem;
+  }
+  .line.flash { background-color: var(--selection); }
+  .line .dash { color: var(--muted); }
+
+  /* ---- Install ---- */
+  .install {
+    margin-top: 2.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    flex-wrap: wrap;
+  }
+  .add-btn {
+    display: inline-block;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 0.7rem 1.4rem;
+    border-radius: 8px;
+  }
+  .add-btn:hover { text-decoration: none; filter: brightness(1.08); }
+  .install .req {
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    color: var(--muted);
+  }
+
+  /* ---- Sections ---- */
+  section { margin-top: 4rem; }
+  h2 {
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.25rem;
+  }
+  h2::before { content: "## "; }
+
+  .commands { list-style: none; }
+  .commands li { margin-bottom: 0.8rem; }
+  .commands .cmd {
+    font-family: var(--mono);
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+  .commands p { color: var(--muted); font-size: 0.9375rem; }
+
+  .notes { list-style: none; margin-top: 1.4rem; }
+  .notes li {
+    position: relative;
+    padding-left: 1.3rem;
+    color: var(--muted);
+    font-size: 0.9375rem;
+    margin-bottom: 0.45rem;
+  }
+  .notes li::before {
+    content: "·";
+    position: absolute;
+    left: 0.2rem;
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .notes code, .steps code, details code {
+    font-family: var(--mono);
+    font-size: 0.875em;
+    background: var(--well);
+    border: 1px solid var(--hairline);
+    border-radius: 4px;
+    padding: 0.08em 0.35em;
+  }
+
+  /* ---- Steps ---- */
+  .steps { list-style: none; counter-reset: step; }
+  .steps > li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 2.2rem;
+    margin-bottom: 1.1rem;
+    font-size: 0.9765rem;
+  }
+  .steps > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0.15rem;
+    width: 1.45rem;
+    height: 1.45rem;
+    border: 1px solid var(--hairline);
+    border-radius: 50%;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+  }
+  .url-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    align-items: stretch;
+  }
+  .url-row input {
+    flex: 1;
+    min-width: 0;
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    color: var(--muted);
+    background: var(--well);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    padding: 0.45rem 0.6rem;
+  }
+  .copy-btn {
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    background: none;
+    color: var(--ink);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    padding: 0.45rem 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  details { margin-top: 1.6rem; font-size: 0.9375rem; color: var(--muted); }
+  details summary { cursor: pointer; color: var(--ink); }
+  details p { margin-top: 0.6rem; }
+  details pre {
+    margin-top: 0.6rem;
+    background: var(--well);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  footer {
+    margin-top: 4.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--hairline);
+    font-family: var(--mono);
+    font-size: 0.8125rem;
+    color: var(--muted);
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  footer a { color: var(--muted); }
+  footer a:hover { color: var(--accent); }
+  footer .sep { user-select: none; }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    .line { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <span class="repo">markedit-sort-text</span>
+    <a href="https://github.com/bcantoni/markedit-sort-text">source on GitHub</a>
+  </header>
+
+  <main>
+    <h1>Put your lines in order.</h1>
+    <p class="lede"><strong>Sort Text</strong> adds two commands to <a href="https://github.com/MarkEdit-app/MarkEdit">MarkEdit</a>’s Extensions menu that sort lines alphabetically — case-insensitive, locale-aware, and numeric-aware.</p>
+
+    <div class="editor" aria-label="Demo: lines sorting alphabetically">
+      <div class="editor-chrome">
+        <div class="lights" aria-hidden="true"><span></span><span></span><span></span></div>
+        <span class="filename">groceries.md</span>
+        <button type="button" class="replay" id="replay" aria-label="Replay the sorting demo">↻ replay</button>
+      </div>
+      <div class="editor-body" id="demo" aria-hidden="true"></div>
+    </div>
+
+    <div class="install">
+      <a class="add-btn" href="markedit://install-extension?url=https%3A%2F%2Fbcantoni.github.io%2Fmarkedit-sort-text%2Fmarkedit-sort-text.js">Add to MarkEdit</a>
+      <span class="req">requires MarkEdit 1.34+ · relaunch after install</span>
+    </div>
+
+    <section>
+      <h2>what it does</h2>
+      <ul class="commands">
+        <li>
+          <span class="cmd">Sort Lines A → Z</span> &nbsp;·&nbsp; <span class="cmd">Sort Lines Z → A</span>
+          <p>Both act on the selected lines, or the whole document when nothing is selected.</p>
+        </li>
+      </ul>
+      <ul class="notes">
+        <li>Case-insensitive: <code>apples</code> sorts with <code>Bananas</code>, not after them.</li>
+        <li>Numeric-aware: <code>item2</code> comes before <code>item10</code>.</li>
+        <li>Locale-aware: <code>Éclairs</code> sorts with <code>e</code>.</li>
+        <li>Selections expand to whole lines; multiple selections sort independently.</li>
+        <li>A whole sort is one undo step — <code>⌘Z</code> restores everything.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>install from a url</h2>
+      <ol class="steps">
+        <li>
+          Copy the extension URL:
+          <div class="url-row">
+            <input type="text" readonly value="https://bcantoni.github.io/markedit-sort-text/markedit-sort-text.js" id="ext-url" aria-label="Extension URL">
+            <button type="button" class="copy-btn" id="copy">Copy</button>
+          </div>
+        </li>
+        <li>In MarkEdit, open the <strong>Extensions</strong> window and choose <strong>Actions&nbsp;→ Install from URL…</strong></li>
+        <li>Paste the URL and confirm the install.</li>
+        <li>Relaunch MarkEdit — <strong>Sort Text</strong> appears in the Extensions menu.</li>
+      </ol>
+      <details>
+        <summary>Install by copying the file instead</summary>
+        <p>Every MarkEdit user extension is a single <code>.js</code> file in the app’s sandboxed scripts folder. Download <a href="markedit-sort-text.js">markedit-sort-text.js</a> and copy it there, then relaunch:</p>
+        <pre>cp markedit-sort-text.js ~/Library/Containers/app.cyan.markedit/Data/Documents/scripts/</pre>
+      </details>
+    </section>
+  </main>
+
+  <footer>
+    <span>MIT License</span><span class="sep">·</span>
+    <a href="https://github.com/bcantoni">Brian Cantoni</a><span class="sep">·</span>
+    <a href="https://github.com/bcantoni/markedit-sort-text">github.com/bcantoni/markedit-sort-text</a>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  // The demo runs the extension's real compare over a jumbled markdown list.
+  var items = ['- Oranges', '- item10', '- Éclairs', '- apples', '- item2', '- Bananas'];
+  var compare = function (a, b) {
+    return a.localeCompare(b, undefined, { sensitivity: 'base', numeric: true });
+  };
+  var sortedRank = items.slice().sort(compare);
+
+  var body = document.getElementById('demo');
+  var replayBtn = document.getElementById('replay');
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var rowH = parseFloat(getComputedStyle(document.documentElement).fontSize) * 1.9;
+
+  var rows = items.map(function (text, i) {
+    var el = document.createElement('div');
+    el.className = 'line';
+    el.innerHTML = '<span class="dash">-</span>' + text.slice(1);
+    el.style.transform = 'translateY(' + i * rowH + 'px)';
+    body.appendChild(el);
+    return el;
+  });
+
+  function place(order, flash) {
+    rows.forEach(function (el, i) {
+      var pos = order === 'sorted' ? sortedRank.indexOf(items[i]) : i;
+      el.style.transitionDelay = flash ? (pos * 40) + 'ms' : '0ms';
+      el.style.transform = 'translateY(' + pos * rowH + 'px)';
+      if (flash) {
+        el.classList.add('flash');
+        setTimeout(function () { el.classList.remove('flash'); }, 650 + pos * 40);
+      }
+    });
+  }
+
+  function run() {
+    place('unsorted', false);
+    setTimeout(function () { place('sorted', true); }, reduced ? 400 : 900);
+  }
+
+  if (reduced) {
+    place('sorted', false);
+  } else {
+    setTimeout(run, 900);
+  }
+  replayBtn.addEventListener('click', run);
+
+  var copyBtn = document.getElementById('copy');
+  var urlField = document.getElementById('ext-url');
+  copyBtn.addEventListener('click', function () {
+    navigator.clipboard.writeText(urlField.value).then(function () {
+      copyBtn.textContent = 'Copied';
+      setTimeout(function () { copyBtn.textContent = 'Copy'; }, 1600);
+    });
+  });
+})();
+</script>
+</body>
+</html>
