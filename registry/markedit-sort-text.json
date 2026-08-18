@@ -1,0 +1,17 @@
+{
+  "$schema": "https://github.com/MarkEdit-app/extensions/raw/refs/heads/main/schemas/extension.schema.json",
+  "id": "markedit-sort-text",
+  "name": "Sort Text",
+  "description": "Sort lines alphabetically — case-insensitive, locale-aware, and numeric-aware — on the selection or the whole document.",
+  "author": "bcantoni",
+  "homepage": "https://github.com/bcantoni/markedit-sort-text",
+  "versions": [
+    {
+      "version": "1.0.0",
+      "date": "2026-08-18T01:00:00Z",
+      "url": "https://raw.githubusercontent.com/bcantoni/markedit-sort-text/v1.0.0/markedit-sort-text.js",
+      "sha256": "d351fcad3f8d66d7a146d0577f2f6b35784f07bac85c12aba23cf48279da23d6",
+      "notes": "Initial release."
+    }
+  ]
+}

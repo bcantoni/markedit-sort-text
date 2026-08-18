@@ -74,7 +74,7 @@ How MarkEdit's URL install works (per `ExtensionInstaller`/`ExtensionDownloader`
 
 ### Registry submission
 
-For an in-app **Discover** listing with auto-updates, the extension needs an entry in the community registry, [MarkEdit-app/extensions](https://github.com/MarkEdit-app/extensions). `registry/markedit-sort-text.json` in this repo is a ready-to-submit entry (validated against the registry's `extension.schema.json`): open a PR that adds it as `extensions/markedit-sort-text.json` in that repo. Its version URL is pinned to the immutable `v1.0.0` tag with the matching sha256; the `date` field is added at submission time (UTC, truncated to the hour, per the schema). For future versions: tag a release, prepend a new entry to `versions` with the tag's raw URL and `shasum -a 256` of those exact bytes, and PR the updated file.
+For an in-app **Discover** listing with auto-updates, the extension needs an entry in the community registry, [MarkEdit-app/extensions](https://github.com/MarkEdit-app/extensions). `registry/markedit-sort-text.json` in this repo is a ready-to-submit entry (validated against the registry's `extension.schema.json`): open a PR that adds it as `extensions/markedit-sort-text.json` in that repo. Its version URL is pinned to the immutable `v1.0.0` tag with the matching sha256; refresh the `date` field at submission time (the schema wants the UTC hour the version is checked into the registry). For future versions: tag a release, prepend a new entry to `versions` with the tag's raw URL and `shasum -a 256` of those exact bytes, and PR the updated file.
 
 ### Possible future work
 
