@@ -74,7 +74,36 @@ How MarkEdit's URL install works (per `ExtensionInstaller`/`ExtensionDownloader`
 
 ### Registry submission
 
-For an in-app **Discover** listing with auto-updates, the extension needs an entry in the community registry, [MarkEdit-app/extensions](https://github.com/MarkEdit-app/extensions). `registry/markedit-sort-text.json` in this repo is a ready-to-submit entry (validated against the registry's `extension.schema.json`): open a PR that adds it as `extensions/markedit-sort-text.json` in that repo. Its version URL is pinned to the immutable `v1.0.0` tag with the matching sha256; refresh the `date` field at submission time (the schema wants the UTC hour the version is checked into the registry). For future versions: tag a release, prepend a new entry to `versions` with the tag's raw URL and `shasum -a 256` of those exact bytes, and PR the updated file.
+For an in-app **Discover** listing with auto-updates, the extension needs an entry in the community registry, [MarkEdit-app/extensions](https://github.com/MarkEdit-app/extensions). `registry/markedit-sort-text.json` in this repo is a ready-to-submit entry (validated against the registry's `extension.schema.json`): open a PR that adds it as `extensions/markedit-sort-text.json` in that repo. Its version URL is pinned to the immutable `v1.0.0` tag with the matching sha256; refresh the `date` field at submission time (the schema wants the UTC hour the version is checked into the registry).
+
+### Releasing a new version
+
+1. Edit `markedit-sort-text.js` and run the tests:
+
+   ```sh
+   node test.js
+   ```
+
+2. Commit and push to `main`. That alone updates the Pages install URL — new URL installs get the new code immediately. (Existing URL installs don't auto-update; reinstalling from the landing page overwrites in place.)
+
+3. Tag and cut a GitHub release (bump per semver):
+
+   ```sh
+   git tag v1.1.0 && git push origin v1.1.0
+   gh release create v1.1.0 --title "v1.1.0" --notes "What changed." markedit-sort-text.js
+   ```
+
+4. Hash the exact bytes at the immutable tag URL (this is what MarkEdit verifies):
+
+   ```sh
+   curl -fsSL https://raw.githubusercontent.com/bcantoni/markedit-sort-text/v1.1.0/markedit-sort-text.js | shasum -a 256
+   ```
+
+5. Prepend a new entry to `versions` in `registry/markedit-sort-text.json` — `version`, `date` (`date -u +"%Y-%m-%dT%H:00:00Z"`), the tag's raw URL, the sha256 from step 4, and short `notes`. The registry keeps only the newest 5 entries. Commit and push.
+
+6. PR the updated file to [MarkEdit-app/extensions](https://github.com/MarkEdit-app/extensions) as `extensions/markedit-sort-text.json`. Once merged, registry installs see the update per each user's update-behavior setting.
+
+Steps 3–6 only matter for the registry lane; steps 1–2 are a complete release for URL installs.
 
 ### Possible future work
 
