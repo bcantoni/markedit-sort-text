@@ -32,6 +32,32 @@ cp markedit-sort-text.js ~/Library/Containers/app.cyan.markedit/Data/Documents/s
 
 However you install, **relaunch MarkEdit** afterwards — user scripts are attached when an editor window's web view is created, so a running app won't pick up changes. On 1.34+ the extension appears in the Extensions window (id `markedit-sort-text`, derived from the filename) where it can be enabled/disabled; on 1.33.x and earlier, every `.js` file in `scripts/` is injected unconditionally and removing the file is the only off switch.
 
+## Toolbar icon
+
+Extensions themselves don't have a toolbar API — the **Sort Text** menu is only ever added to the main menu's **Extensions** submenu. But MarkEdit (Pro) lets you pin *any* main-menu item, including ones added by extensions, to the toolbar via a custom `editor.customToolbarItems` entry in `settings.json`:
+
+1. Open `settings.json` with `Shift-Command-Comma`.
+2. Add an entry under `editor.customToolbarItems` referencing the menu by title — either the whole **Sort Text** submenu as one dropdown icon:
+
+   ```json
+   "editor.customToolbarItems": [
+     { "title": "Sort Text", "icon": "arrow.up.arrow.down", "menuName": "Sort Text" }
+   ]
+   ```
+
+   or each direction as its own one-click icon:
+
+   ```json
+   "editor.customToolbarItems": [
+     { "title": "Sort A→Z", "icon": "arrow.up", "actionName": "Sort Lines A → Z" },
+     { "title": "Sort Z→A", "icon": "arrow.down", "actionName": "Sort Lines Z → A" }
+   ]
+   ```
+
+3. Relaunch MarkEdit, then right-click the toolbar → **Customize Toolbar…** and drag the new item in.
+
+`icon` must be a valid [SF Symbol](https://developer.apple.com/sf-symbols/) name. See the [Customization wiki](https://github.com/MarkEdit-app/MarkEdit/wiki/Customization#editorcustomtoolbaritems) for the full `customToolbarItems` reference.
+
 ## Development
 
 The whole extension is one hand-written file, `markedit-sort-text.js` — plain classic JavaScript, no dependencies, no build step. MarkEdit wraps each script in an IIFE with a CommonJS shim and injects it as a `WKUserScript`, so top-level ESM `import`/`export` won't work; everything comes from the global `MarkEdit` object instead.
