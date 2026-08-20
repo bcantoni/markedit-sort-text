@@ -1,5 +1,7 @@
 # Sort Text — a MarkEdit extension
 
+See my original blog post for more background: <https://www.cantoni.org/2026/08/19/markedit-sort-text-extension/>
+
 Adds a **Sort Text** submenu to [MarkEdit](https://github.com/MarkEdit-app/MarkEdit)'s **Extensions** menu with two commands:
 
 - **Sort Lines A → Z**
@@ -34,7 +36,7 @@ However you install, **relaunch MarkEdit** afterwards — user scripts are attac
 
 ## Toolbar icon
 
-Extensions themselves don't have a toolbar API — the **Sort Text** menu is only ever added to the main menu's **Extensions** submenu. But MarkEdit (Pro) lets you pin *any* main-menu item, including ones added by extensions, to the toolbar via a custom `editor.customToolbarItems` entry in `settings.json`:
+Extensions themselves don't have a toolbar API, but MarkEdit lets you pin any main-menu item, including ones added by extensions, to the toolbar via a custom `editor.customToolbarItems` entry in `settings.json`:
 
 1. Open `settings.json` with `Shift-Command-Comma`.
 2. Add an entry under `editor.customToolbarItems` referencing the menu by title — either the whole **Sort Text** submenu as one dropdown icon:
@@ -56,7 +58,7 @@ Extensions themselves don't have a toolbar API — the **Sort Text** menu is onl
 
 3. Relaunch MarkEdit, then right-click the toolbar → **Customize Toolbar…** and drag the new item in.
 
-`icon` must be a valid [SF Symbol](https://developer.apple.com/sf-symbols/) name. See the [Customization wiki](https://github.com/MarkEdit-app/MarkEdit/wiki/Customization#editorcustomtoolbaritems) for the full `customToolbarItems` reference.
+See the [Customization wiki](https://github.com/MarkEdit-app/MarkEdit/wiki/Customization#editorcustomtoolbaritems) for the full `customToolbarItems` reference.
 
 ## Development
 
